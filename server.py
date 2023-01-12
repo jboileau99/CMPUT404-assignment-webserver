@@ -26,13 +26,41 @@ import socketserver
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
+def get_request_parts(request: str):
+    """
+    Parse a dictionary of request details from request data
+    """
+
+    lines = request.split("\r\n")
+
+    # Get request method, path, and protocol from first element
+    method, path, protocol = lines[0].split(maxsplit=3)
+
+    # Get request headers from remaining elements
+    headers = {}
+    for line in lines[1:]:
+        print(line)
+        k, v = line.split(':', maxsplit=1)  # maxsplit=1 ensures lines like 'Host: 127.0.0.1:8080' won't split twice
+        headers[k.strip()] = v.strip()
+
+    return {
+        'method': method,
+        'path': path,
+        'protocol': protocol,
+        'headers': headers
+    }
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
+
+        # Get request path and headers
+        print(get_request_parts(self.data.decode('utf-8')))
+
         self.request.sendall(bytearray("OK",'utf-8'))
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
