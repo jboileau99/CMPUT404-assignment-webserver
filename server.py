@@ -1,5 +1,6 @@
 #  coding: utf-8 
 import socketserver
+import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -39,7 +40,6 @@ def get_request_parts(request: str):
     # Get request headers from remaining elements
     headers = {}
     for line in lines[1:]:
-        print(line)
         k, v = line.split(':', maxsplit=1)  # maxsplit=1 ensures lines like 'Host: 127.0.0.1:8080' won't split twice
         headers[k.strip()] = v.strip()
 
@@ -54,13 +54,56 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
+        # print ("Got a request of: %s\n" % self.data)
 
         # Get request path and headers
-        print(get_request_parts(self.data.decode('utf-8')))
+        parts = get_request_parts(self.data.decode('utf-8'))
+        path: str = os.getcwd() + parts['path']
+        print(path)
 
-        self.request.sendall(bytearray("OK",'utf-8'))
+        # Check if path exists
+        if os.path.isfile(path):
 
+            print('is file')
+
+            # Response with OK and the file if it exists
+            self.request.sendall(bytearray("HTTP/1.1 200 OK\r\n", 'utf-8'))
+            self.request.sendall(bytearray("Content-Type: text/html\r\n", 'utf-8'))
+            with open(path) as f:
+                self.request.sendall(bytearray(f.read(),'utf-8'))
+
+        elif os.path.isdir(path):
+
+            print('is dir')
+
+            if path.endswith('/'):
+
+                # New path with index.html
+                path = path + 'index.html'
+                if os.path.exists(path):
+
+                    # Send index.html if it exists
+                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\n", 'utf-8'))
+                    self.request.sendall(bytearray("Content-Type: text/html\r\n", 'utf-8'))
+                    with open(path) as f:
+                        self.request.sendall(bytearray(f.read(),'utf-8'))
+                else:
+
+                    # Send 404 if there is no index.html in the directory
+                    self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n",'utf-8'))
+                    self.request.sendall(bytearray("Content-Type: text/html\r\n\r\n", 'utf-8'))
+                    self.request.sendall(bytearray(f"<html><b>404 Not Found</b></html>\r\n", 'utf-8'))
+
+            else:
+                # Respond with 301 to path + / if that path does exist
+                self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\n", 'utf-8'))
+                self.request.sendall(bytearray(f"Location: {parts['path']}/\r\n", 'utf-8'))
+
+        else:
+            # Send 404 if path did not exist
+            self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n",'utf-8'))
+            self.request.sendall(bytearray("Content-Type: text/html\r\n\r\n", 'utf-8'))
+            self.request.sendall(bytearray(f"<html><b>404 Not Found</b></html>\r\n", 'utf-8'))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
