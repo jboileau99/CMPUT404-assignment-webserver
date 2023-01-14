@@ -27,6 +27,14 @@ import os
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
+'''
+TODO (There's other but this is just things I think of and don't want to forget)
+** CHECK REQUIREMENTS.ORG **
+
+- Only server from /www ... does this mean consider paths as www/ + path?? I think so, check unit tests
+'''
+
+
 def get_request_parts(request: str):
     """
     Parse a dictionary of request details from request data
