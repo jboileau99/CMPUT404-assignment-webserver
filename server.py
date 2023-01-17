@@ -27,14 +27,6 @@ import os
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-'''
-TODO (There's other but this is just things I think of and don't want to forget)
-** CHECK REQUIREMENTS.ORG **
-
-- Only server from /www ... does this mean consider paths as www/ + path?? I think so, check unit tests - DONE
-- Add license ... how to add myself to the existing one in this repo?
-'''
-
 ALLOWED_CONTENT_TYPES: list[str] = ['text/html', 'text/css']
 
 ALLOWED_METHODS: list[str] = ['GET']
