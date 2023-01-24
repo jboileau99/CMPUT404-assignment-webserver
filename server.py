@@ -27,13 +27,13 @@ import os
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-ALLOWED_CONTENT_TYPES: list[str] = ['text/html', 'text/css']
+ALLOWED_CONTENT_TYPES = ['text/html', 'text/css']
 
-ALLOWED_METHODS: list[str] = ['GET']
+ALLOWED_METHODS = ['GET']
 
-ALLOWED_HOSTS: list[str] = ['127.0.0.1:8080', 'localhost:8080']
+ALLOWED_HOSTS = ['127.0.0.1:8080', 'localhost:8080']
 
-def get_request_parts(request: str):
+def get_request_parts(request):
     """
     Parse a dictionary of request details from request data
 
@@ -65,7 +65,7 @@ def get_request_parts(request: str):
     else:
         return None
 
-def decide_content_type(path: str):
+def decide_content_type(path):
     """
     Decide content MIME type based on path string. Defaults to text/plain.
     """
@@ -130,7 +130,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.respond_not_found()
             
 
-    def respond_ok(self, content_type: ALLOWED_CONTENT_TYPES, content: str | bytearray):
+    def respond_ok(self, content_type, content):
         """
         Respond with HTTP 200 and some content
         """
@@ -149,7 +149,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.request.sendall(bytearray(f"Content-Type: {content_type}\r\n\r\n", 'utf-8'))
         self.request.sendall(content)
 
-    def respond_moved(self, moved_to: str):
+    def respond_moved(self, moved_to):
         """
         Respond with HTTP 301 and provide the new location
         """
