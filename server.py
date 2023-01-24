@@ -31,6 +31,8 @@ ALLOWED_CONTENT_TYPES: list[str] = ['text/html', 'text/css']
 
 ALLOWED_METHODS: list[str] = ['GET']
 
+ALLOWED_HOSTS: list[str] = ['127.0.0.1:8080', 'localhost:8080']
+
 def get_request_parts(request: str):
     """
     Parse a dictionary of request details from request data
@@ -39,16 +41,26 @@ def get_request_parts(request: str):
     they aren't needed for this assignment
     """
 
+    lines = request.split("\r\n")
+
     # Get a list of values from the first line in the request
-    details = request.split("\r\n")[0].split()
+    details = lines[0].split()
     
+    # Get request headers from remaining elements
+    headers = {}
+    for line in lines[1:]:
+        # Add another header to our dictionary if we can extract a colon seperated key and value
+        pair = line.split(':', maxsplit=1)  # maxsplit=1 ensures lines like 'Host: 127.0.0.1:8080' won't split twice
+        if len(pair) == 2:
+            headers[pair[0].strip()] = pair[1].strip()
+
     if len(details) == 3:
-        # Get request method, path, and protocol
-        method, path, protocol = details
+        # Return request method, path, protocol, and other headers
         return {
-            'method': method,
-            'path': path,
-            'protocol': protocol,
+            'method': details[0],
+            'path': details[1],
+            'protocol': details[2],
+            'headers': headers
         }
     else:
         return None
@@ -73,28 +85,32 @@ class MyWebServer(socketserver.BaseRequestHandler):
         parts = get_request_parts(self.data.decode('utf-8'))
         if parts is None:
             return
-        
         path = os.getcwd() + '/www' + parts['path']
         
-        # Check if computed path is within the /www directory
+        # Ensure we're hosting the indicated host
+        if parts['headers']['Host'] not in ALLOWED_HOSTS:
+            self.respond_not_found()
+            return
+
+        # Ensure computed path is within the /www directory
         if (os.getcwd() + '/www') not in os.path.normpath(path):
             self.respond_not_found()
             return
 
-        # Check if method is valid
+        # Ensure method is valid
         if parts['method'] not in ALLOWED_METHODS:
             self.respond_method_not_allowed()
             return
 
+        # Ensure file exists
         if os.path.isfile(path):
-            # Check if file exists
 
             # Response with OK and the file if it exists
             with open(path) as f:
                 self.respond_ok(decide_content_type(path), f.read())
 
+        # Ensure directory exists
         elif os.path.isdir(path):
-            # Check if directory exists
 
             if path.endswith('/'):
                 # New path with index.html
