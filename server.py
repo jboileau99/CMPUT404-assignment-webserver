@@ -154,7 +154,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         Respond with HTTP 301 and provide the new location
         """
         self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\n", 'utf-8'))
-        self.request.sendall(bytearray(f"Location: {moved_to}\r\n", 'utf-8'))
+        self.request.sendall(bytearray(f"Location: {moved_to}\r\n\r\n", 'utf-8'))
 
     def respond_not_found(self):
         """
