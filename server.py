@@ -27,7 +27,7 @@ import os
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-ALLOWED_CONTENT_TYPES = ['text/html', 'text/css']
+ALLOWED_CONTENT_TYPES = ['text/html', 'text/css', 'application/octet-stream']
 
 ALLOWED_METHODS = ['GET']
 
@@ -74,7 +74,8 @@ def decide_content_type(path):
     elif path.endswith('.css'):
         return 'text/css'
     else:
-        return 'text/plain'
+        # Default to application/octet-stream
+        return 'application/octet-stream'
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
